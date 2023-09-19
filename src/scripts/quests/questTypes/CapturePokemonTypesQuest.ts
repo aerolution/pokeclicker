@@ -37,18 +37,18 @@ class CapturePokemonTypesQuest extends Quest implements QuestInterface {
     }
 
     private static calcReward(amount: number, type: PokemonType): number {
-        const reward = amount * GameConstants.CAPTURE_POKEMONS_BASE_REWARD * this.weights[type].weight;
+        const reward = amount * GameConstants.CAPTURE_POKEMONS_BASE_REWARD * this.weights[type].weight * 2;
         return super.randomizeReward(reward);
     }
 
     get description(): string {
-        return `Capture ${this.amount.toLocaleString('en-US')} ${PokemonType[this.type]} type Pokémon.`;
+        return `Capture or hatch ${this.amount.toLocaleString('en-US')} ${PokemonType[this.type]}-type Pokémon.`;
     }
 
     toJSON() {
         const json = super.toJSON();
-        json['name'] = this.constructor.name;
-        json['data'].push(this.type);
+        json.name = this.constructor.name;
+        json.data.push(this.type);
         return json;
     }
 }

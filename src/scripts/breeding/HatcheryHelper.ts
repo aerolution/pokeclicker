@@ -25,6 +25,7 @@ class HatcheryHelper {
     public trainerSprite = 0;
     public hired: KnockoutObservable<boolean> = ko.observable(false).extend({ boolean: null });
     public tooltip: KnockoutComputed<string>;
+    public fireAllButtonTooltip: KnockoutComputed<string>;
     public sortOption: KnockoutObservable<SortOptions> = ko.observable(SortOptions.id).extend({ numeric: 0 });
     public sortDirection: KnockoutObservable<boolean> = ko.observable(false).extend({ boolean: null });
     public hatched: KnockoutObservable<number> = ko.observable(0).extend({ numeric: 0 });
@@ -33,6 +34,8 @@ class HatcheryHelper {
     public attackEfficiency: KnockoutObservable<number> = ko.observable(0).extend({ numeric: 1 });
     public prevBonus: KnockoutObservable<number> = ko.observable(0).extend({ numeric: 0 });
     public nextBonus: KnockoutObservable<number> = ko.observable(1).extend({ numeric: 0 });
+    public categories: KnockoutObservableArray<number> = ko.observableArray([]);
+    public useHatcheryFilters: KnockoutObservable<boolean> = ko.observable(true);
     // public level: number;
     // public experience: number;
 
@@ -44,7 +47,7 @@ class HatcheryHelper {
         public unlockRequirement?: Requirement | MultiRequirement | OneFromManyRequirement
     ) {
         SeededRand.seed(parseInt(this.name, 36));
-        this.trainerSprite = SeededRand.intBetween(0, Profile.MAX_TRAINER - 1);
+        this.trainerSprite = SeededRand.intBetween(0, 118);
 
         this.tooltip = ko.pureComputed(() => `<strong>${this.name}</strong><br/>
             Cost: <img src="assets/images/currency/${GameConstants.Currency[this.cost.currency]}.svg" width="20px">&nbsp;${(this.cost.amount).toLocaleString('en-US')}/hatch<br/>
@@ -75,13 +78,23 @@ class HatcheryHelper {
         return this.unlockRequirement?.isCompleted() ?? true;
     }
 
+    // String for currency in Notifications and Logs
+    currencyString() {
+        switch (GameConstants.Currency[this.cost.currency]) {
+            case 'money':
+                return 'Pokédollars';
+            default:
+                return `${GameConstants.camelCaseToString(GameConstants.Currency[this.cost.currency])}s`;
+        }
+    }
+
     hire(): void {
 
         // Check the player has enough Currency to hire this Hatchery Helper
         if (!App.game.wallet.hasAmount(this.cost)) {
             Notifier.notify({
                 title: `[HATCHERY HELPER] <img src="assets/images/profile/trainer-${this.trainerSprite}.png" height="24px" class="pixelated"/> ${this.name}`,
-                message: `You don't have enough ${GameConstants.camelCaseToString(GameConstants.Currency[this.cost.currency])} to hire me..\nCost: <img src="./assets/images/currency/${GameConstants.Currency[this.cost.currency]}.svg" height="24px"/> ${this.cost.amount.toLocaleString('en-US')}`,
+                message: `You don't have enough ${this.currencyString()} to hire me...\nCost: <img src="./assets/images/currency/${GameConstants.Currency[this.cost.currency]}.svg" height="24px"/> ${this.cost.amount.toLocaleString('en-US')}`,
                 type: NotificationConstants.NotificationOption.warning,
                 timeout: 30 * GameConstants.SECOND,
             });
@@ -94,15 +107,17 @@ class HatcheryHelper {
             message: 'Thanks for hiring me,\nI won\'t let you down!',
             type: NotificationConstants.NotificationOption.success,
             timeout: 30 * GameConstants.SECOND,
+            setting: NotificationConstants.NotificationSetting.Hatchery.hatchery_helper,
         });
     }
 
     fire(): void {
         Notifier.notify({
             title: `[HATCHERY HELPER] <img src="assets/images/profile/trainer-${this.trainerSprite}.png" height="24px" class="pixelated"/> ${this.name}`,
-            message: 'Thanks for the work,\nLet me know when you\'re hiring again!',
+            message: 'Thanks for the work.\nLet me know when you\'re hiring again!',
             type: NotificationConstants.NotificationOption.info,
             timeout: 30 * GameConstants.SECOND,
+            setting: NotificationConstants.NotificationSetting.Hatchery.hatchery_helper,
         });
         this.hired(false);
         return;
@@ -113,17 +128,32 @@ class HatcheryHelper {
         if (!App.game.wallet.loseAmount(this.cost)) {
             Notifier.notify({
                 title: `[HATCHERY HELPER] <img src="assets/images/profile/trainer-${this.trainerSprite}.png" height="24px" class="pixelated"/> ${this.name}`,
-                message: `It looks like you are a little short on ${GameConstants.camelCaseToString(GameConstants.Currency[this.cost.currency])} right now..\nLet me know when you're hiring again!\nCost: <img src="./assets/images/currency/${GameConstants.Currency[this.cost.currency]}.svg" height="24px"/> ${this.cost.amount.toLocaleString('en-US')}`,
+                message: `It looks like you are a little short on ${this.currencyString()} right now...\nLet me know when you're hiring again!\nCost: <img src="./assets/images/currency/${GameConstants.Currency[this.cost.currency]}.svg" height="24px"/> ${this.cost.amount.toLocaleString('en-US')}`,
                 type: NotificationConstants.NotificationOption.danger,
                 timeout: 30 * GameConstants.MINUTE,
             });
             this.hired(false);
+            App.game.logbook.newLog(
+                LogBookTypes.OTHER,
+                createLogContent.unableToPayHatcheryHelper({
+                    currency: this.currencyString(),
+                    name: this.name,
+                })
+            );
             return;
         }
     }
 
     toJSON(): Record<string, any> {
-        return ko.toJS(this);
+        return {
+            name: this.name,
+            hired: this.hired(),
+            sortOption: this.sortOption(),
+            sortDirection: this.sortDirection(),
+            hatched: this.hatched(),
+            categories: this.categories(),
+            useHatcheryFilters: this.useHatcheryFilters(),
+        };
     }
 
     fromJSON(json: Record<string, any>): void {
@@ -134,6 +164,8 @@ class HatcheryHelper {
         this.sortOption(json.sortOption || 0);
         this.sortDirection(json.sortDirection || false);
         this.hatched(json.hatched || 0);
+        this.categories(json.categories || []);
+        this.useHatcheryFilters(json.useHatcheryFilters ?? true);
     }
 }
 
@@ -167,20 +199,45 @@ class HatcheryHelpers {
             const steps = Math.max(1, Math.round(amount * (helper.stepEfficiency() / 100)));
 
             // Add steps to the egg we are managing
-            const egg = this.hatchery.eggList[index]();
-            egg.addSteps(steps, multiplier);
+            let egg = this.hatchery.eggList[index]();
+            egg.addSteps(steps, multiplier, true);
 
             // Check if the egg is ready to hatch
-            if (egg.progress() >= 100 || egg.isNone()) {
-                egg.hatch(helper.attackEfficiency());
-                this.hatchery.eggList[index](new Egg());
+            if (egg.canHatch()) {
+                const hatched = egg.hatch(helper.attackEfficiency(), true);
+                if (hatched) {
+                    // Reset egg
+                    this.hatchery.eggList[index](new Egg());
+                    egg = this.hatchery.eggList[index]();
+                }
+            }
 
+            // Check if egg slot empty
+            if (egg.isNone()) {
                 // Check if there's a pokemon we can chuck into an egg
-                const pokemon = App.game.party.caughtPokemon
-                    .sort(PartyController.compareBy(helper.sortOption(), helper.sortDirection()))
-                    .find(p => BreedingController.visible(p)());
+                const compare = PartyController.compareBy(helper.sortOption(), helper.sortDirection(),
+                    App.game.challenges.list.regionalAttackDebuff.active() ? BreedingController.regionalAttackDebuff() : GameConstants.Region.none);
+
+                const categories = helper.categories();
+                const useHatcheryFilters = helper.useHatcheryFilters();
+                const pokemon = App.game.party.caughtPokemon.reduce((best, pokemon) => {
+                    if (useHatcheryFilters && !pokemon.isHatchable()) {
+                        return best;
+                    }
+                    if (!useHatcheryFilters && (pokemon.breeding || pokemon.level < 100)) {
+                        return best;
+                    }
+                    if (categories.length && categories.indexOf(pokemon.category) === -1) {
+                        return best;
+                    }
+                    if (best === null) {
+                        return pokemon;
+                    }
+                    return compare(best, pokemon) <= 0 ? best : pokemon;
+                }, null);
+
                 if (pokemon) {
-                    this.hatchery.gainPokemonEgg(pokemon);
+                    this.hatchery.gainPokemonEgg(pokemon, index);
                     // Charge the player when we put a pokemon in the hatchery
                     helper.charge();
                     // Increment our hatched counter
@@ -214,6 +271,7 @@ HatcheryHelpers.add(new HatcheryHelper('Blake', new Amount(10000, GameConstants.
 HatcheryHelpers.add(new HatcheryHelper('Jasmine', new Amount(50000, GameConstants.Currency.money), 15, 50, new ItemOwnedRequirement('HatcheryHelperJasmine')));
 HatcheryHelpers.add(new HatcheryHelper('Parker', new Amount(1000, GameConstants.Currency.dungeonToken), 15, 25, new HatchRequirement(1000)));
 HatcheryHelpers.add(new HatcheryHelper('Dakota', new Amount(10000, GameConstants.Currency.dungeonToken), 50, 50, new ItemOwnedRequirement('HatcheryHelperDakota')));
+HatcheryHelpers.add(new HatcheryHelper('Cameron', new Amount(75, GameConstants.Currency.farmPoint), 75, 75, new ItemOwnedRequirement('HatcheryHelperCameron')));
 HatcheryHelpers.add(new HatcheryHelper('Justice', new Amount(10, GameConstants.Currency.questPoint), 100, 50, new QuestRequirement(200)));
 HatcheryHelpers.add(new HatcheryHelper('Carey', new Amount(20, GameConstants.Currency.questPoint), 50, 125, new ItemOwnedRequirement('HatcheryHelperCarey')));
 HatcheryHelpers.add(new HatcheryHelper('Aiden', new Amount(5, GameConstants.Currency.diamond), 100, 100, new UndergroundLayersMinedRequirement(100)));

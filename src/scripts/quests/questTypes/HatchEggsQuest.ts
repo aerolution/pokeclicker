@@ -12,7 +12,8 @@ class HatchEggsQuest extends Quest implements QuestInterface {
     }
 
     public static generateData(): any[] {
-        const amount = SeededRand.intBetween(1, 30);
+        const highestRegion = player.highestRegion();
+        const amount = SeededRand.intBetween(1, (10 + (5 * highestRegion)));
         const reward = this.calcReward(amount);
         return [amount, reward];
     }
@@ -23,12 +24,12 @@ class HatchEggsQuest extends Quest implements QuestInterface {
     }
 
     get description(): string {
-        return `Hatch ${this.amount.toLocaleString('en-US')} Eggs.`;
+        return `Hatch ${this.amount.toLocaleString('en-US')} ${GameConstants.pluralizeString('Egg', this.amount)}.`;
     }
 
     toJSON() {
         const json = super.toJSON();
-        json['name'] = this.constructor.name;
+        json.name = this.constructor.name;
         return json;
     }
 }

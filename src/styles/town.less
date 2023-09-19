@@ -1,12 +1,10 @@
 #townView {
-  min-height: 263px;
+  min-height: 280px;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: top;
-
   display: flex;
   flex-direction: column;
-
   animation: bounceBackground 60s linear infinite alternate;
 
   .featureList {
@@ -18,6 +16,8 @@
 
   #dungeonPokemonList {
     width: 100%;
+    white-space: nowrap;
+    overflow-x: auto;
 
     .list-inline-item {
       position: relative;
@@ -25,7 +25,8 @@
       .lock {
         position: absolute;
         width: 100%;
-        left: 0px;
+        left: 0;
+        bottom: 0;
       }
 
       .shiny {

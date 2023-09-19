@@ -1,4 +1,4 @@
-@import "variables.less";
+@import url("variables.less");
 
 @padding: 3px;
 
@@ -14,6 +14,7 @@
 
 #seedList {
   padding-top: 10px;
+  min-height: 362px;
 }
 
 #mulchList {
@@ -31,7 +32,6 @@
 }
 
 .berryLocked {
-  -webkit-filter: brightness(0%); /* Safari 6.0 - 9.0 */
   filter: brightness(0%);
   opacity: 0.2;
 }
@@ -52,6 +52,10 @@
   cursor:url('../assets/images/farm/mulchShovel.png'), auto;
 }
 
+.PlotSafeLockSelected {
+    cursor:url('../assets/images/farm/plotSafeLock.png'), auto;
+}
+
 .Boost_Mulch {
     filter: hue-rotate(200deg);
 }
@@ -68,13 +72,18 @@
     filter: hue-rotate(250deg);
 }
 
+.Freeze_Mulch {
+    filter: brightness(200%) hue-rotate(210deg);
+}
+
 #plotList {
   padding: 10px;
+
   .plot {
     padding: 2px;
+
     &:hover {
       filter: brightness(95%);
-      -webkit-filter: brightness(95%);
       cursor: pointer;
 
       .plotLockHover {
@@ -92,6 +101,23 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+  }
+
+  .plotImage {
+      position: relative;
+
+      .plotSafeLockIcon {
+          position: absolute;
+          bottom: 5px;
+          right: 5px;
+          height: 16px;
+          width: 16px;
+          filter:
+                drop-shadow(0.2px 0.2px 0 black)
+                drop-shadow(-0.2px 0.2px 0 black)
+                drop-shadow(0.2px -0.2px 0 black)
+                drop-shadow(-0.2px -0.2px 0 black);
+      }
   }
 
   .plotButton {
@@ -114,5 +140,37 @@
 
   .plotDisabled {
     filter: brightness(50%) opacity(90%);
+  }
+}
+
+#wanderRow {
+  #wanderPokemonList {
+    width: 100%;
+
+    .list-inline-item {
+      position: relative;
+      margin-top: 7px;
+
+      .lock {
+        position: absolute;
+        width: 100%;
+        left: 0;
+        bottom: 0;
+      }
+
+      .shiny {
+        position: absolute;
+        top: 10px;
+        right: -5px;
+      }
+    }
+
+    .list-inline-item:nth-child(n+6) {
+      margin-top: 14px;
+    }
+
+    .no-pokerus {
+      margin-bottom: -10px;
+    }
   }
 }

@@ -13,7 +13,9 @@
                     for="partySortDirection"
                     class="clickable m-0 pl-2 pr-2"
                     style="font-size: 22px;"
-                    data-bind="text: Settings.getSetting('partySortDirection').observableValue() ? '⥄' : '⥂'"
+                    data-bind="
+                        text: Settings.getSetting('partySortDirection').observableValue() ? '⥄' : '⥂',
+                        tooltip: { title: Settings.getSetting('partySortDirection').observableValue() ? 'Descending (highest value first)' : 'Ascending (lowest value first)', trigger: 'hover', placement:'top' }"
                 >⥂</label>
                 <input
                     id="partySortDirection"
@@ -27,7 +29,7 @@
         </div>
     </div>
 </script>
-<div id="pokemonListContainer" class="card sortable border-secondary mb-3" data-bind="visible: player.starter() != GameConstants.Starter.None">
+<div id="pokemonListContainer" class="card sortable border-secondary mb-3" data-bind="visible: player.regionStarters[GameConstants.Region.kanto]() != GameConstants.Starter.None">
     <div class="card-header p-0" data-toggle="collapse" href="#pokemonListBody">
         <span>Pokémon List</span>
     </div>
@@ -52,12 +54,12 @@
                     </td>
                 </tr>
             </thead>
-            <tbody data-bind="foreach: PartyController.getSortedList()">
-                <tr data-bind="hidden: $data.breeding">
+            <tbody data-bind="foreach: lazyLoad($element, PartyController.getSortedList, { pageSize: 20 })">
+                <tr data-toggle="modal" href="#pokemonStatisticsModal" data-bind="hidden: $data.breeding, click: () => { App.game.statistics.selectedPokemonID($data.id) }">
                     <td>
                         <img
                             class="smallImage"
-                            data-bind="attr: { src: PokemonHelper.getImage($data, App.game.party.alreadyCaughtPokemon($data.id, true)) }"
+                            data-bind="attr: { src: PokemonHelper.getImage($data.id) }"
                             src=""
                             alt=""
                         />
@@ -65,10 +67,21 @@
                     <td>
                         <div>
                             <div class="pokemonName">
-                                <span data-bind="text: name">Name</span>
+                                <span data-bind="text: displayName">Name</span>
                                 <sup data-bind="visible: App.game.party.alreadyCaughtPokemon($data.id, true)">✨</sup>
+                                <img class="shadow-icon" src="assets/images/status/shadow.svg" data-bind="visible: $data.shadow == GameConstants.ShadowStatus.Shadow"/>
+                                <img class="shadow-icon" src="assets/images/status/purified.svg" data-bind="visible: $data.shadow == GameConstants.ShadowStatus.Purified"/>
+                                <!-- ko foreach: PokemonHelper.getMegaStones($data.name).filter(s => player.hasMegaStone(s.megaStone)) -->
+                                <img width="20px" data-bind="attr: { src: $data.image },
+                                    tooltip: {
+                                        title: pokemonMap[$parent.name].evolutions.flatMap(e => e.restrictions)
+                                            .find(r => r instanceof MegaEvolveRequirement && r.megaStone == $data.megaStone)?.hint() ?? '',
+                                        trigger: 'hover',
+                                        placement: 'bottom'
+                                }"/>
+                                <!-- /ko -->
                             </div>
-                            <div class="pokemonAttack" data-bind="text: attack.toLocaleString()"></div>
+                            <div class="pokemonAttack" data-bind="text: attack.toLocaleString('en-US')"></div>
                             <div class="pokemonLevel" data-bind="text: level"></div>
                         </div>
                     </td>

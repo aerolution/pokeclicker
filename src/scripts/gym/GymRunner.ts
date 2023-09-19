@@ -4,6 +4,7 @@
 class GymRunner {
     public static timeLeft: KnockoutObservable<number> = ko.observable(GameConstants.GYM_TIME);
     public static timeLeftPercentage: KnockoutObservable<number> = ko.observable(100);
+    public static timeBonus: KnockoutObservable<number> = ko.observable(1);
 
     public static gymObservable: KnockoutObservable<Gym> = ko.observable(GymList['Pewter City']);
     public static running: KnockoutObservable<boolean> = ko.observable(false);
@@ -15,27 +16,25 @@ class GymRunner {
         autoRestart = false,
         initialRun = true
     ) {
-        this.initialRun = initialRun;
-        this.autoRestart(autoRestart);
-        this.running(false);
-        this.gymObservable(gym);
-        if (gym instanceof Champion) {
-            gym.setPokemon(player.starter());
-        }
+        GymRunner.initialRun = initialRun;
+        GymRunner.autoRestart(autoRestart);
+        GymRunner.running(false);
+        GymRunner.gymObservable(gym);
         App.game.gameState = GameConstants.GameState.idle;
-        GymRunner.timeLeft(GameConstants.GYM_TIME);
+        DungeonRunner.timeBonus(FluteEffectRunner.getFluteMultiplier(GameConstants.FluteItemType.Time_Flute));
+        GymRunner.timeLeft(GameConstants.GYM_TIME * GymRunner.timeBonus());
         GymRunner.timeLeftPercentage(100);
 
         GymBattle.gym = gym;
-        GymBattle.totalPokemons(gym.pokemons.length);
+        GymBattle.totalPokemons(gym.getPokemonList().length);
         GymBattle.index(0);
         GymBattle.generateNewEnemy();
         App.game.gameState = GameConstants.GameState.gym;
-        this.running(true);
-        this.resetGif();
+        GymRunner.running(true);
+        GymRunner.resetGif();
 
         setTimeout(() => {
-            this.hideGif();
+            GymRunner.hideGif();
         }, GameConstants.GYM_COUNTDOWN);
     }
 
@@ -49,7 +48,7 @@ class GymRunner {
             return;
         }
 
-        if (!this.autoRestart() || this.initialRun) {
+        if (!GymRunner.autoRestart() || GymRunner.initialRun) {
             $('#gymGoContainer').show();
             setTimeout(() => {
                 $('#gymGo').attr('src', 'assets/gifs/go.gif');
@@ -58,21 +57,39 @@ class GymRunner {
     }
 
     public static tick() {
-        if (!this.running()) {
+        if (!GymRunner.running()) {
             return;
         }
-        if (this.timeLeft() < 0) {
+        if (GymRunner.timeLeft() < 0) {
             GymRunner.gymLost();
         }
-        this.timeLeft(this.timeLeft() - GameConstants.GYM_TICK);
-        this.timeLeftPercentage(Math.floor(this.timeLeft() / GameConstants.GYM_TIME * 100));
+
+        GymRunner.timeLeft(GymRunner.timeLeft() - GameConstants.GYM_TICK);
+        GymRunner.timeLeftPercentage(Math.floor(GymRunner.timeLeft() / (GameConstants.GYM_TIME * FluteEffectRunner.getFluteMultiplier(GameConstants.FluteItemType.Time_Flute)) * 100));
+
+        const currentFluteBonus = FluteEffectRunner.getFluteMultiplier(GameConstants.FluteItemType.Time_Flute);
+        if (currentFluteBonus != GymRunner.timeBonus()) {
+            if (currentFluteBonus > GymRunner.timeBonus()) {
+                if (GymRunner.timeBonus() === 1) {
+                    GymRunner.timeBonus(currentFluteBonus);
+                    GymRunner.timeLeft(GymRunner.timeLeft() * GymRunner.timeBonus());
+                } else {
+                    GymRunner.timeLeft(GymRunner.timeLeft() / GymRunner.timeBonus());
+                    GymRunner.timeBonus(currentFluteBonus);
+                    GymRunner.timeLeft(GymRunner.timeLeft() * GymRunner.timeBonus());
+                }
+            } else {
+                GymRunner.timeLeft(GymRunner.timeLeft() / GymRunner.timeBonus());
+                GymRunner.timeBonus(currentFluteBonus);
+            }
+        }
     }
 
     public static gymLost() {
-        if (this.running()) {
-            this.running(false);
+        if (GymRunner.running()) {
+            GymRunner.running(false);
             Notifier.notify({
-                message: `It appears you are not strong enough to defeat ${GymBattle.gym.leaderName}`,
+                message: `It appears you are not strong enough to defeat ${GymBattle.gym.leaderName.replace(/\d/g, '')}.`,
                 type: NotificationConstants.NotificationOption.danger,
             });
             App.game.gameState = GameConstants.GameState.town;
@@ -80,10 +97,10 @@ class GymRunner {
     }
 
     public static gymWon(gym: Gym) {
-        if (this.running()) {
-            this.running(false);
+        if (GymRunner.running()) {
+            GymRunner.running(false);
             Notifier.notify({
-                message: `Congratulations, you defeated ${GymBattle.gym.leaderName}!`,
+                message: `Congratulations, you defeated ${GymBattle.gym.leaderName.replace(/\d/g, '')}!`,
                 type: NotificationConstants.NotificationOption.success,
                 setting: NotificationConstants.NotificationSetting.General.gym_won,
             });
@@ -94,12 +111,12 @@ class GymRunner {
             GameHelper.incrementObservable(App.game.statistics.gymsDefeated[GameConstants.getGymIndex(gym.town)]);
 
             // Auto restart gym battle
-            if (this.autoRestart()) {
-                const cost = (this.gymObservable().moneyReward || 10) * 2;
+            if (GymRunner.autoRestart()) {
+                const cost = (GymRunner.gymObservable().moneyReward || 10) * 2;
                 const amt = new Amount(cost, GameConstants.Currency.money);
                 // If the player can afford it, restart the gym
                 if (App.game.wallet.loseAmount(amt)) {
-                    this.startGym(this.gymObservable(), this.autoRestart(), false);
+                    GymRunner.startGym(GymRunner.gymObservable(), GymRunner.autoRestart(), false);
                     return;
                 }
             }
@@ -115,6 +132,11 @@ class GymRunner {
     public static timeLeftSeconds = ko.pureComputed(() => {
         return (Math.ceil(GymRunner.timeLeft() / 100) / 10).toFixed(1);
     })
+
+    public static getEnvironmentArea() {
+        const gym = GymRunner.gymObservable();
+        return gym.optionalArgs.environment;
+    }
 
 }
 

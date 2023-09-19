@@ -14,12 +14,19 @@ You can reach out on discord to discuss your ideas and how to implement them: ht
 
 # Developer instructions
 
+## Rules
+- Make sure the build script is a success. We won't test Pull Requests that fail the building script.
+- We won't accept balance Pull Requests, unless it's from a developer or Code Contributor (discord roles).
+- Pull Requests adding new translatable content should link to a Pull Request in the [translation repo](https://github.com/pokeclicker/pokeclicker-translations) adding your new strings. See the Developer instructions on that repo for more info.
+- Split Pull Requests into smaller Pull Requests when possible. It will make it easier for us to review, and easier for you if something's needs to be changed or is rejected.
+
 ## Editor/IDE setup
 
 We have an [EditorConfig](https://editorconfig.org/) and linting configured, to help everyone write similar code. You will find our recommended plugins for VSCode below, however you should be able to find a plugin for other IDEs as well.
 
 * [EditorConfig](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
 * [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+* [Stylelint](https://marketplace.visualstudio.com/items?itemName=stylelint.vscode-stylelint)
 
 ## Building from Source
 
@@ -27,7 +34,7 @@ First make sure you have git and npm available as command-line utilities (so you
 
 Open a command line interface in the directory that contains this README file, and use the following command to install PokéClicker's other dependencies locally:
 ```cmd
-npm clean-install
+npm run clean
 ```
 
 Then finally, run the following command in the command line interface to start a browser running PokéClicker.
@@ -49,9 +56,16 @@ Click the [Web Preview](https://cloud.google.com/shell/docs/using-web-preview) B
 Cloud Shell opens the preview URL on its proxy service in a new browser window.
 
 ## Deploying a new version to Github Pages
-Before deploying, check that the game compiles and starts up without errors. Then run:
+Before deploying, check that the game compiles and starts up without errors.
+
+Then run the following:
 ```cmd
 npm run website
 ```
+This will populate the `/docs` folder.
 
-After this command completes, push the changed files in the 'docs' directory to Github.
+After this command completes you can now publish this to your GitHub pages branch using:
+```cmd
+npm run publish
+```
+Which by default will push to the `master` branch

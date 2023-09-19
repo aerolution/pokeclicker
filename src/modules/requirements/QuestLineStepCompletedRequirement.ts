@@ -1,22 +1,31 @@
 import { AchievementOption } from '../GameConstants';
+import QuestLineState from '../quests/QuestLineState';
 
 import Requirement from './Requirement';
 
 export default class QuestLineStepCompletedRequirement extends Requirement {
-    questLineName: string;
-    questIndex: number;
+    cachedQuest: any;
+    get quest() {
+        if (!this.cachedQuest) {
+            this.cachedQuest = App.game.quests.getQuestLine(this.questLineName);
+        }
+        return this.cachedQuest;
+    }
 
-    constructor(questLineName: string, questIndex: number) {
-        super(1, AchievementOption.equal);
-        this.questLineName = questLineName;
-        this.questIndex = questIndex;
+    constructor(private questLineName: string, private questIndex: (() => number) | number, option = AchievementOption.equal) {
+        super(1, option);
     }
 
     public getProgress(): number {
-        return App.game.quests.getQuestLine(this.questLineName).quests()[this.questIndex].isCompleted() ? 1 : 0;
+        let questIndex = typeof this.questIndex === 'number' ? this.questIndex : (typeof this.questIndex === 'function' ? this.questIndex() : 0);
+        return (this.quest.state() === QuestLineState.ended || this.quest.curQuest() > questIndex) ? 1 : 0;
+    }
+
+    public isCompleted() {
+        return this.quest.state() == QuestLineState.suspended ? false : super.isCompleted();
     }
 
     public hint(): string {
-        return `Progress further in questline ${this.questLineName}`;
+        return `Progress further in questline ${this.questLineName}.`;
     }
 }

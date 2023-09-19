@@ -18,7 +18,7 @@
   vertical-align: middle;
 }
 
-#questDisplayBody {
+.questDisplayBlock {
   .btn {
     height: 20px;
     line-height: 0;
@@ -37,15 +37,22 @@
     line-height: 1rem;
   }
   
-  #questLines {
-    .card-header {
+  .card-header {
       position: relative;
+	  margin-top : 1px;
       
       .info {
         position: absolute;
-        top: 0px;
+        top: 0;
         right: 5px;
       }
     }
-  }
+	
+	table {
+		margin-bottom : 4px;
+	}
+	
+	&:last-child table {
+		margin-bottom : 0;
+	}
 }

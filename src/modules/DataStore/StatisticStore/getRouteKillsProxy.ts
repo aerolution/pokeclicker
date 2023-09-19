@@ -17,12 +17,12 @@ export default (): any => {
                     return regionStats[prop];
                 }
 
-                // Route kills are tracked by the route number as the key,
+                // Route Defeat are tracked by the route number as the key,
                 // so only allow keys that can be numbers
                 if (Number.isNaN(Number(prop))) {
                     if (Number.isNaN(prop)) {
                         // eslint-disable-next-line no-console
-                        console.trace(`[Statistics] [routeKills.${region}] Invalid property requested:`, prop);
+                        console.trace(`[Statistics] [routeDefeat.${region}] Invalid property requested:`, prop);
                     }
                     return failedSetValue;
                 }
@@ -35,7 +35,7 @@ export default (): any => {
             // This makes it so the stats observable can't be accidently changed
             set: (
                 obj: Record<number, Observable<number>>,
-                prop: number | string,
+                prop: number | string | symbol,
                 value: number,
             ): boolean => {
                 const result = obj[prop](value);
@@ -45,7 +45,7 @@ export default (): any => {
     ])));
 
     return new Proxy(zeroedRegions, {
-        get: (regions, prop: GameConstants.Region) => {
+        get: (regions, prop: GameConstants.Region | symbol | string) => {
             // Convert the prop to the string version of the region
             const regionName = Number.isNaN(Number(prop))
                 ? prop // A string was passed in
@@ -60,11 +60,11 @@ export default (): any => {
         // Prevent adding regions dynamically once the proxy is created
         set: (
             obj: Record<string, Record<number, Observable<number>>>,
-            prop: GameConstants.Region,
+            prop: GameConstants.Region | symbol | string,
             value: any,
         ): boolean => {
             // eslint-disable-next-line no-console
-            console.trace(`[Statistics] [routeKills] Attempted to dynamically set region ${prop}:`, value);
+            console.trace(`[Statistics] [routeKills] Attempted to dynamically set region ${String(prop)}:`, value);
             return false;
         },
     });

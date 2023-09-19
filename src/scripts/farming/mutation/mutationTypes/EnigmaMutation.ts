@@ -10,9 +10,6 @@ class EnigmaMutation extends GrowMutation {
     constructor(mutationChance: number) {
         super(mutationChance, BerryType.Enigma, {
             unlockReq: function(): boolean {
-                if (!App.game.discord.ID()) {
-                    return false;
-                }
                 return EnigmaMutation.getReqs().every(req => App.game.farming.unlockedBerries[req]());
             },
         });
@@ -57,7 +54,7 @@ class EnigmaMutation extends GrowMutation {
      * Returns a list of 4 Berry types to cause the mutation
      */
     static getReqs(): BerryType[] {
-        SeededRand.seed(+App.game.discord.ID());
+        SeededRand.seed(+player.trainerId);
         // Getting possible Berries
         // Only Gen 3 and 4 Berries so there isn't as big of a growth discrepancy (e.g. Cheri and Haban)
         let berryTypes = Farming.getGeneration(2).concat(Farming.getGeneration(3));
@@ -79,9 +76,6 @@ class EnigmaMutation extends GrowMutation {
      * Handles getting the hint for this mutation for the Kanto Berry Master
      */
     get partialHint(): string {
-        if (!App.game.discord.ID()) {
-            return 'There is a Berry that requires a linked <u>Discord</u> account to appear...';
-        }
         const idx = this.hintIndex;
         return `There's a mysterious berry that requires ${this.getHint(idx)}.`;
     }
@@ -109,13 +103,10 @@ class EnigmaMutation extends GrowMutation {
      * Handles getting the full hint for the BerryDex
      */
     get hint(): string {
-        if (!App.game.discord.ID()) {
-            return 'There is a Berry that requires a linked <u>Discord</u> account to appear...';
-        }
-
         const hints = [];
+        const unlocked = App.game.farming.unlockedBerries[this.mutatedBerry]();
         this.hintsSeen.forEach((hintSeen, idx) => {
-            if (!hintSeen()) {
+            if (!hintSeen() && !unlocked) {
                 return false;
             }
             hints.push(this.getHint(idx));
@@ -127,27 +118,25 @@ class EnigmaMutation extends GrowMutation {
             tempHint += 'a specific configuration of Berries';
         }
 
-        tempHint += (hints.length !== 4) ? '. However there\'s still something missing...' : '.';
+        tempHint += (hints.length !== 4) ? '. However, there\'s still something missing...' : '.';
 
         return tempHint;
     }
 
-    toJSON(): Record<string, any> {
-        const json = super.toJSON();
-        json['hintsSeen'] = this.hintsSeen.map(ko.unwrap);
-        return json;
+    toJSON(): boolean[] {
+        return this.hintsSeen.map(h => h());
     }
-    fromJSON(json: Record<string, any>): void {
-        super.fromJSON(json);
 
-        const hintsSeen = json['hintsSeen'];
-        if (hintsSeen == null) {
-            this.hintsSeen = Array<boolean>(4).fill(false).map((v) => ko.observable<boolean>(v));
-        } else {
-            (hintsSeen as boolean[]).forEach((value: boolean, index: number) => {
-                this.hintsSeen[index](value);
-            });
+    fromJSON(hintsSeen: boolean[]): void {
+        if (!hintsSeen || typeof hintsSeen !== 'object') {
+            return;
         }
+        (hintsSeen as boolean[]).forEach((value: boolean, index: number) => {
+            if (value) {
+                this.hintSeen = true;
+            }
+            this.hintsSeen[index](value);
+        });
     }
 
 }

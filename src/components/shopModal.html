@@ -45,7 +45,7 @@
                                     +100
                                 </button>
                                 <button class="btn btn-secondary smallButton smallFont" type="button" onclick="ShopHandler.increaseAmount(1000)">
-                                    +1000
+                                    +1,000
                                 </button>
                             <!-- /ko -->
                             <button class="btn btn-primary smallButton smallFont" type="button" onclick="ShopHandler.maxAmount()">
@@ -70,17 +70,25 @@
         </h4>
     </div>
     <div class="row justify-content-center" data-bind="foreach: ShopHandler.shopObservable().items">
+        <!-- ko if: $data.isVisible() -->
         <div class="col-6 col-sm-4 col-lg-3">
            <button class="shopItem clickable btn btn-block btn-secondary"
                data-bind="click: function() {ShopHandler.setSelected($index())},
                css: { active: ShopHandler.selected() == $index() },
-               attr: { disabled: !$data.isAvailable() },
+               attr: { disabled: !$data.isAvailable() || $data.isSoldOut() },
                tooltip: {
                   title: $data.description ? `<u>${$data.displayName}:</u><br/>${$data.description}` : '',
                   trigger: 'hover',
                   placement:'bottom',
                   html: true
                 }">
+               <knockout data-bind="if: ($data instanceof PokemonItem)">
+                    <span style="position: absolute; top: 12px; left: 20px;"
+                        data-bind="template: { name: 'pokerusStatusTemplate', data: {
+                            'pokerus': $data.getPokerusStatus(), 'width': '32px',
+                            'evs': App.game.party.getPokemonByName($data.type)?.evs() }}">
+                    </span>
+               </knockout>
                <knockout data-bind="if: ($data instanceof CaughtIndicatingItem)">
                    <span style="position: absolute; top: 15px; right: 20px;"
                          data-bind="template: { name: 'caughtStatusTemplate', data: {'status': $data.getCaughtStatus()}}">
@@ -88,12 +96,14 @@
                </knockout>
                <img src="" height="36px" data-bind="attr:{ src: $data.image }">
                <p data-bind="text: $data.displayName">Item Name</p>
-               <div data-bind="if: $data.isAvailable()">
+               <div data-bind="if: $data.isAvailable() && !$data.isSoldOut()">
                     <span data-bind="template: { name: 'currencyTemplate', data: {'amount': totalPrice(ShopHandler.amount()), 'currency': currency, 'reducedThreshold': 1e10}}"></span>
                 </div>
-                <div data-bind="ifnot: $data.isAvailable()">
+                <div data-bind="if: !$data.isAvailable() || $data.isSoldOut()">
                     <span>Sold Out</span>
                 </div>
             </button>
         </div>
+        <!-- /ko -->
+    </div>
 </script>

@@ -18,11 +18,11 @@ class UseOakItemQuest extends Quest implements QuestInterface {
         const possibleItems = [
             OakItemType.Magic_Ball,
             OakItemType.Amulet_Coin,
-            // OakItemType.Poison_Barb,
+            // OakItemType.Rocky_Helmet,
             OakItemType.Exp_Share,
             // OakItemType.Sprayduck,
             // OakItemType.Shiny_Charm,
-            // OakItemType.Blaze_Cassette,
+            // OakItemType.Magma_Stone,
             // OakItemType.Cell_Battery,
             // OakItemType.Squirtbottle,
             // OakItemType.Sprinklotad,
@@ -41,13 +41,24 @@ class UseOakItemQuest extends Quest implements QuestInterface {
     }
 
     get description(): string {
-        return `Gain the benefit from the ${GameConstants.humanifyString(OakItemType[this.item])} ${this.amount.toLocaleString('en-US')} times.`;
+        const desc = [];
+        desc.push(`Equip the ${GameConstants.humanifyString(OakItemType[this.item])} and`);
+        if (this.item == OakItemType.Magic_Ball) {
+            desc.push(`capture ${this.amount.toLocaleString('en-US')} wild Pokémon.`);
+        } else if (this.item == OakItemType.Amulet_Coin) {
+            desc.push(`earn Pokédollars ${this.amount.toLocaleString('en-US')} times.`);
+        } else if (this.item == OakItemType.Exp_Share) {
+            desc.push(`defeat ${this.amount.toLocaleString('en-US')} Pokémon.`);
+        } else {
+            desc.push(`gain its benefit ${this.amount.toLocaleString('en-US')} times.`);
+        }
+        return desc.join(' ');
     }
 
     toJSON() {
         const json = super.toJSON();
-        json['name'] = this.constructor.name;
-        json['data'].push(this.item);
+        json.name = this.constructor.name;
+        json.data.push(this.item);
         return json;
     }
 }

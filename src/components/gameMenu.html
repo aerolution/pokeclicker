@@ -1,4 +1,11 @@
 <div id="startMenu" class="dropdown clearfix" style="position:absolute; right:0; top:0; z-index: 100;">
+    <button class="btn btn-secondary mr-1"
+        data-bind="visible: Settings.getSetting('showMuteButton').observableValue(),
+            click: () => { Settings.getSetting('sound.muted').toggle() },
+            tooltip: { title: Settings.getSetting('sound.muted').observableValue() ? 'Click to unmute all sounds.' : 'Click to mute all sounds.', trigger: 'hover', placement: 'bottom' }">
+        <img src="assets/images/volume-high.svg" height="20px" width="20px" style="margin-top: -3px;"
+            data-bind="attr: { src: `assets/images/${Settings.getSetting('sound.muted').observableValue() ? 'volume-xmark' : 'volume-high'}.svg` }">
+    </button>
     <button class="btn btn-secondary dropdown-toggle float-right" type="button" data-toggle="dropdown">
         Start Menu
         <span class="caret"></span>
@@ -27,6 +34,9 @@
             <a class="dropdown-item" href="#settingsModal" data-toggle="modal">Settings</a>
         </li>
         <li>
+            <a class="dropdown-item" href="#eventsModal" data-toggle="modal">Events</a>
+        </li>
+        <li>
             <button class="dropdown-item" href="#statisticsModal" data-toggle="modal">Statistics</button>
         </li>
         <li>
@@ -45,22 +55,13 @@
             <a class="dropdown-item" href="#changelogModal" data-toggle="modal">Changelog</a>
         </li>
         <li>
-            <a class="dropdown-item" href="#eventsModal" data-toggle="modal">Events</a>
-        </li>
-        <li>
             <a class="dropdown-item" href="#FAQModal" data-toggle="modal">FAQ</a>
         </li>
         <li>
             <a class="dropdown-item" href="#creditsModal" data-toggle="modal">Credits</a>
         </li>
         <li>
-            <a class="dropdown-item" href="https://pokeclicker.reddit.com" target="_blank">Subreddit</a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="https://discord.gg/a6DFe4p" target="_blank">Discord</a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="http://pokeclicker.miraheze.org/" target="_blank">Wiki</a>
+            <a class="dropdown-item" href="#externalLinksModal" data-toggle="modal">External Links</a>
         </li>
         <li>
             <a class="dropdown-item" href="https://github.com/pokeclicker/pokeclicker/issues" target="_blank">Report a bug</a>

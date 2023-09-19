@@ -13,6 +13,7 @@ module.exports = {
         ],
         tsconfigRootDir: __dirname,
     },
+    plugins: ['import'],
     extends: ['airbnb-typescript/base'],
     globals: {
         ko: 'readonly',
@@ -20,9 +21,11 @@ module.exports = {
         gtag: 'readonly',
         App: 'readonly',
         player: 'readonly',
-        pokemonMap: 'readonly',
         Save: 'readonly',
         MapHelper: 'readonly',
+        DungeonRunner: 'readonly',
+        GymRunner: 'readonly',
+        AchievementHandler: 'readonly',
     },
     rules: {
         indent: 'off',
@@ -49,8 +52,16 @@ module.exports = {
             generics: 'always-multiline',
             tuples: 'always-multiline',
         }],
+        '@typescript-eslint/default-param-last': 'warn',
         '@typescript-eslint/lines-between-class-members': ['error', { exceptAfterSingleLine: true }],
-        '@typescript-eslint/member-ordering': ['error'],
+        '@typescript-eslint/member-ordering': [
+            'error',
+            {
+                default: ['signature', 'field', 'constructor', 'method'],
+            },
+        ],
         'no-alert': 'error',
+        'no-sparse-arrays': 'error',
+        'dot-notation': 'error',
     },
 };

@@ -38,6 +38,7 @@ enum BerryType {
     Watmel,
     Durin,
     Belue,
+    Pinkan,
     // Fourth Generation (Typed)
     Occa,
     Passho,
@@ -57,6 +58,7 @@ enum BerryType {
     Babiri,
     Chilan,
     Roseli,
+    Snover,
     // Fifth Generation
     Micle,
     Custap,
@@ -72,6 +74,7 @@ enum BerryType {
     Lansat,
     Starf,
     Enigma,
+    Hopo,
 }
 
 export default BerryType;

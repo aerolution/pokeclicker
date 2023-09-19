@@ -3,7 +3,6 @@ enum KeyItemType {
     'Coin_case',
     'Pokeball_bag',
     'Town_map',
-    'Factory_key',
     'Dungeon_ticket',
     'Super_rod',
     'Holo_caster',
@@ -11,9 +10,12 @@ enum KeyItemType {
     'Safari_ticket',
     'Wailmer_pail',
     'Explorer_kit',
+    'Eon_ticket',
     'Event_calendar',
     'Gem_case',
     'DNA_splicers',
+    'Reins_of_unity',
+    'Pokerus_virus',
 }
 
 export default KeyItemType;

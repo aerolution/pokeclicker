@@ -1,11 +1,11 @@
 enum OakItemType {
     'Magic_Ball' = 0,
     'Amulet_Coin',
-    'Poison_Barb',
+    'Rocky_Helmet',
     'Exp_Share',
     'Sprayduck',
     'Shiny_Charm',
-    'Blaze_Cassette',
+    'Magma_Stone',
     'Cell_Battery',
     'Squirtbottle',
     'Sprinklotad',

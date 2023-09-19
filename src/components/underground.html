@@ -18,7 +18,7 @@
                     </li>
                     <li class='nav-item'><a data-toggle='tab' class='nav-link' href="#help">Help</a></li>
                     <btn class="btn btn-primary">
-                        <span id="diamondCounter" data-bind='text: App.game.wallet.currencies[GameConstants.Currency.diamond]()'>x</span>
+                        <span id="diamondCounter" data-bind="text: App.game.wallet.currencies[GameConstants.Currency.diamond]().toLocaleString('en-US')">x</span>
                         <img src='assets/images/underground/diamond.svg' width="20px'">
                     </btn>
                 </ul>
@@ -29,7 +29,7 @@
                         <button class="col-4 btn btn-secondary" data-bind="
                                 click: function(){ ItemList[$data].use();},
                                 css: { disabled: player._itemList[$data]() <= 0}">
-                            <span data-bind="text: '(' + player._itemList[$data]() + ')'">(?)</span>
+                            <span data-bind="text: '(' + player._itemList[$data]().toLocaleString('en-US') + ')'">(?)</span>
                             <img class="restore-item" data-bind="attr: { src: ItemList[$data].image }">
                             <span data-bind="text: ' +' + App.game.underground.calculateItemEffect(GameConstants.EnergyRestoreSize[$data])">&nbsp;+? energy</span>
                         </button>
@@ -46,8 +46,10 @@
                     <div id="mineBody" class="container" style="margin:auto">
                     </div>
                     <div class='row no-gutters'>
-                        <button class='col-12 col-md-4 btn btn-primary' onClick='Mine.toolSelected(Mine.Tool.Hammer)'>Hammer (<knockout data-bind="text: Underground.HAMMER_ENERGY"></knockout> energy)</button>
-                        <button class='col-12 col-md-4 btn btn-info' onClick='Mine.toolSelected(Mine.Tool.Chisel)'>Chisel (<knockout data-bind="text: Underground.CHISEL_ENERGY"></knockout> energy)</button>
+                        <button class='col-12 col-md-4 btn btn-primary' onClick='Mine.toolSelected(Mine.Tool.Hammer)'
+                        data-bind="tooltip: {title: 'Hammer will mine 1 layer of all 9 tiles in a chosen 3x3 area.', trigger: 'hover', placement: 'top', boundary: 'window'}">Hammer (<knockout data-bind="text: Underground.HAMMER_ENERGY"></knockout> energy)</button>
+                        <button class='col-12 col-md-4 btn btn-info' onClick='Mine.toolSelected(Mine.Tool.Chisel)'
+                        data-bind="tooltip: {title: 'Chisel will mine 2 layers on a single chosen tile.', trigger: 'hover', placement: 'top', boundary: 'window'}">Chisel (<knockout data-bind="text: Underground.CHISEL_ENERGY"></knockout> energy)</button>
                         <button class="col-12 col-md-4 btn btn-secondary"
                             id="mine-survey-result"
                             data-bind="
@@ -56,18 +58,22 @@
                                     title: () =>
                                         Mine.surveyResult() || 'Conduct a Survey to get more details',
                                         trigger: 'hover',
-                                        placement:'top',
+                                        placement: 'top',
+                                        boundary: 'window',
                                         html: true,
                                 }"
                             >
                         </button>
                         <button class='col-12 col-md-4 btn btn-success'
-                                onClick='Mine.survey()'
-                                data-bind="disable: Mine.surveyResult() ? true : false">
+                                onClick='Mine.survey(); $(this).tooltip("hide")'
+                                data-bind="disable: Mine.surveyResult() ? true : false, tooltip: {title: `Survey gives you information about the items to be found on this layer. It also fully damages ${App.game.underground.getSurvey_Efficiency()} (cleared or uncleared) random tile${App.game.underground.getSurvey_Efficiency() > 1 ? 's' : ''}.`, trigger: 'hover', placement: 'bottom', boundary: 'window'}">
                             Survey (<knockout data-bind="text: App.game.underground.getSurvey_Cost()"></knockout> energy)
                         </button>
-                        <button class='col-12 col-md-4 btn btn-warning' onClick='Mine.bomb()'>Bomb (<knockout data-bind="text: Underground.BOMB_ENERGY"></knockout> energy)</button>
-                        <button class='col-12 col-md-4 btn btn-danger' onClick='Mine.skipLayer(true)'>Skip (<knockout data-bind="text: `${Mine.skipsRemaining()} / ${Mine.maxSkips}`"></knockout>)</button>
+                        <!-- FIX NUMBER-->
+                        <button class='col-12 col-md-4 btn btn-warning' onClick='Mine.bomb()'
+                        data-bind="tooltip: {title: `Bomb will mine 2 layers of ${App.game.underground.getBombEfficiency()} (cleared or uncleared) random tiles.`, trigger: 'hover', placement: 'bottom', boundary: 'window'}">Bomb (<knockout data-bind="text: Underground.BOMB_ENERGY"></knockout> energy)</button>
+                        <button class='col-12 col-md-4 btn btn-danger' onClick='Mine.skipLayer(true)'
+                        data-bind="tooltip: {title: `Skips the current layer. Fully mine a layer to recover one Skip.`, trigger: 'hover', placement: 'bottom', boundary: 'window'}">Skip (<knockout data-bind="text: `${Mine.skipsRemaining()} / ${Mine.maxSkips}`"></knockout>)</button>
                     </div>
                 </div>
                 <div id="treasures" class="tab-pane fade">
@@ -128,10 +134,10 @@
                 </div>
                 <div id="help" class="tab-pane fade pl-5 pr-5">
                     <h4><u>Dig</u></h4>
-                    <p>In the underground you can mine for hidden treasures.</p>
+                    <p>In the Underground you can mine for hidden treasures.</p>
 
-                    <p>There are 3 main ways of breaking tiles:
-                    <br/>Chisel will mine two layers on a single tile.
+                    <p>There are three main ways of breaking tiles:
+                    <br/>Chisel will mine 2 layers on a single tile.
                     <br/>Hammer will mine 1 layer on all nine tiles of a 3x3 square.
                     <br/>Bomb will mine 2 layers of 10 random tiles.</p>
 
@@ -148,11 +154,11 @@
 
                     <h4><u>Upgrades</u></h4>
                     <p>You can use your diamonds to buy all kinds of upgrades that will help you explore the underground even further!</p>
-                    <p>Some upgrades will make the Underground harder and are less cost efficient.
+                    <p>Some upgrades will make the Underground harder and are less cost-efficient.
                     <br/>Avoid these until you have the other available upgrades!</p>
 
                     <h4><u>Daily deals</u></h4>
-                    <p>In the Daily deals tab you can trade your items.</p>
+                    <p>In the Daily deals tab you can trade your items. The trades available change each day at midnight.</p>
                 </div>
                 <div id="dailyDeals" class="tab-pane fade">
                     <div class="table-responsive" id="dailyDealsBody">
@@ -169,34 +175,96 @@
                                     <th></th>
                                 </tr>
                             </thead>
-                            <tbody data-bind='foreach: DailyDeal.list'>
+                            <tbody>
+                                <!-- ko foreach: DailyDeal.list -->
                                 <tr>
-                                    <td class='vertical-middle text-center' data-bind='text: player.getUndergroundItemAmount(item1.id)'></td>
+                                    <td class='vertical-middle text-center' data-bind="text: player.getUndergroundItemAmount(item1.id).toLocaleString('en-US')"></td>
                                     <td class='vertical-middle'>
                                         <img class='mineInventoryItem' data-bind='attr: {src: item1.image }'>
                                     </td>
-                                    <td class='vertical-middle' data-bind='text: amount1 + " × " + item1.name'></td>
+                                    <td class="vertical-middle">
+                                        <span data-bind="text: amount1"></span>
+                                        <span data-bind="visible: App.game.underground.tradeAmount() > 1, text: ` (${(amount1 * App.game.underground.tradeAmount()).toLocaleString('en-US')})`"></span>
+                                        <span data-bind="text: ` × ${item1.name}`"></span>
+                                    </td>
                                     <td class='vertical-middle'>→</td>
-                                    <td class='vertical-middle text-center' data-bind='text: player.getUndergroundItemAmount(item2.id)'></td>
+                                    <td class='vertical-middle text-center' data-bind="text: player.getUndergroundItemAmount(item2.id).toLocaleString('en-US')"></td>
                                     <td class='vertical-middle'>
                                         <img class='mineInventoryItem' data-bind='attr: {src: item2.image }'>
                                     </td>
-                                    <td class='vertical-middle' data-bind='text: amount2 + " × " + item2.name'></td>
+                                    <td class="vertical-middle">
+                                        <span data-bind="text: amount2"></span>
+                                        <span data-bind="visible: App.game.underground.tradeAmount() > 1, text: ` (${(amount2 * App.game.underground.tradeAmount()).toLocaleString('en-US')})`"></span>
+                                        <span data-bind="text: ` × ${item2.name}`"></span>
+                                    </td>
                                     <td class='vertical-middle'>
-                                        <div class="btn-group btn-block" data-bind="let: { tradeAmount: ko.observable(1) }">
-                                            <button class='btn btn-success btn-block' data-bind='click: function(){DailyDeal.use($index(), tradeAmount())}, css: { disabled: !DailyDeal.canUse($index()) }'>
+                                        <div class="btn-group btn-block">
+                                            <button class="btn btn-primary btn-block" data-bind="click: () => DailyDeal.use($index(), App.game.underground.tradeAmount()), css: { disabled: !DailyDeal.canUse($index()) }">
                                                 Trade
                                             </button>
-                                            <button type="button" data-bind="text: tradeAmount() + '&nbsp;', css: { disabled: !DailyDeal.canUse($index()) }" class="btn btn-success dropdown-toggle dropdown-toggle-split active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            </button>
-                                            <div class="dropdown-menu" data-bind="foreach: [1, 10, 100, 1000, Infinity]">
-                                                <button class="dropdown-item" type="button" data-bind="click: function(){tradeAmount($data)}, text: $data"></button>
+                                            <button type="button" data-bind="css: { disabled: !DailyDeal.canUse($index()) }"
+                                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                            <div class="dropdown-menu text-center p-0">
+                                                <p class="small py-2 m-0">Set Trade Amount</p>
+                                                <div class="dropdown-divider m-0"></div>
+                                                <!-- ko foreach: [10, 25, 50, 75, 100] -->
+                                                <button class="dropdown-item small py-1" type="button" data-bind="text: `${$data}%`,
+                                                    click: () => { App.game.underground.tradeAmount(Math.floor(player.getUndergroundItemAmount($parent.item1.id) * ($data / 100) / $parent.amount1)) }"></button>
+                                                <!-- /ko -->
                                             </div>
                                         </div>
                                     </td>
                                 </tr>
+                                <!-- /ko -->
+                                <!-- ko ifnot: App.game.underground.getUpgrade(UndergroundUpgrade.Upgrades.Daily_Deals_Max).isMaxLevel() -->
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted p-2">Upgrade the Underground to unlock additional deals!</td>
+                                </tr>
+                                <!-- /ko -->
                             </tbody>
                         </table>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-center p-2">
+                        <div class="col-12 col-lg-6">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <button class="btn btn-warning btn-outline-dark smallButton smallFont"
+                                        data-bind="click: () => App.game.underground.tradeAmount(1)">Reset</button>
+                                </div>
+                                <input type="number" class="outline-dark form-control form-control-number" data-bind="textInput: App.game.underground.tradeAmount" />
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split rounded-0" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                    <div class="dropdown-menu" data-bind="foreach: [10, 100, 1000]">
+                                        <button class="dropdown-item py-1" type="button" data-bind="text: $data.toLocaleString('en-US'),
+                                            click: () => App.game.underground.tradeAmount($data)"></button>
+                                    </div>
+                                    <!-- ko if: Settings.getSetting('shopButtons').observableValue() == 'original' -->
+                                    <button class="btn btn-secondary smallButton smallFont" type="button" onclick="App.game.underground.increaseTradeAmount(10)">
+                                        +10
+                                    </button>
+                                    <button class="btn btn-secondary smallButton smallFont" type="button" onclick="App.game.underground.increaseTradeAmount(100)">
+                                        +100
+                                    </button>
+                                    <!-- /ko -->
+                                    <!-- ko if: Settings.getSetting('shopButtons').observableValue() == 'multiplication' -->
+                                    <button class="btn btn-secondary smallButton smallFont" type="button" onclick="App.game.underground.multiplyTradeAmount(10)">
+                                        &times;10
+                                    </button>
+                                    <button class="btn btn-secondary smallButton smallFont" type="button" onclick="App.game.underground.multiplyTradeAmount(0.1)">
+                                        &div;10
+                                    </button>
+                                    <!-- /ko -->
+                                    <!-- ko if: Settings.getSetting('shopButtons').observableValue() == 'bigplus' -->
+                                    <button class="btn btn-secondary smallButton smallFont" type="button" onclick="App.game.underground.increaseTradeAmount(100)">
+                                        +100
+                                    </button>
+                                    <button class="btn btn-secondary smallButton smallFont" type="button" onclick="App.game.underground.increaseTradeAmount(1000)">
+                                        +1,000
+                                    </button>
+                                    <!-- /ko -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -224,7 +292,7 @@
         <td class='vertical-middle'
             data-bind='text: upgrade.isMaxLevel() ? "" : "(" + (upgrade.increasing ? "+" : "-") + upgrade.upgradeBonus() + ")"'></td>
         <td class='vertical-middle'
-            data-bind='text: upgrade.isMaxLevel() ? "" : upgrade.calculateCost().amount + " diamonds"'></td>
+            data-bind="text: upgrade.isMaxLevel() ? '' : upgrade.calculateCost().amount.toLocaleString('en-US') + ' Diamonds'"></td>
         <td class='vertical-middle'>
             <button class='btn btn-success btn-block'
                     data-bind='css: { disabled: !upgrade.canBuy() },
@@ -237,19 +305,20 @@
     <script type="text/html" id="treasureListTemplate">
         <tr data-bind='if: amount() > 0'>
             <td class='vertical-middle'>
-                <img class='mineInventoryItem' data-bind='attr:{ src: Underground.getMineItemById(id).image }'>
-                <span data-bind='text: "("+$data.amount()+")"'></span>
+                <img class='mineInventoryItem' data-bind='attr:{ src: UndergroundItems.getById(id).image }'>
+                <span data-bind="text: '('+$data.amount().toLocaleString('en-US')+')'"></span>
             </td>
             <td class='vertical-middle' data-bind='text: name'></td>
-            <!-- ko if: valueType == "Mine Egg" -->
+            <!-- ko if: (valueType == UndergroundItemValueType.Shard || valueType == UndergroundItemValueType.Fossil || valueType == UndergroundItemValueType.FossilPiece) -->
             <td></td>
             <!-- /ko -->
-            <!-- ko ifnot: valueType == "Mine Egg" -->
-            <td class='vertical-middle' data-bind='text: value + " " + UndergroundItem.getFullResourceName(valueType, value)'></td>
+            <!-- ko ifnot: (valueType == UndergroundItemValueType.Shard || valueType == UndergroundItemValueType.Fossil || valueType == UndergroundItemValueType.FossilPiece)  -->
+            <td class='vertical-middle' data-bind='text: value + " " + GameConstants.camelCaseToString(UndergroundItems.getFullResourceName($data, value))'></td>
             <!-- /ko -->
             <td class='vertical-middle'>
+                <!-- ko ifnot: valueType == UndergroundItemValueType.Shard || valueType == UndergroundItemValueType.FossilPiece -->
                 <div class="btn-group btn-block" data-bind="let: { sellAmount: ko.observable(1) }">
-                    <!-- ko ifnot: valueType == "Mine Egg" -->
+                    <!-- ko ifnot: valueType == UndergroundItemValueType.Fossil -->
                     <label
                     class="input-group-prepend btn btn-success active clickable m-0"
                         data-bind="text: sellLocked() ? '🔒' : '🔓', attr: { for: 'sellLockedIndicatorOfItem' + id }"
@@ -262,18 +331,19 @@
                     <!-- /ko -->
                     <button class='btn btn-success btn-block'
                             data-bind="attr: { 'data-itemid': id },
-                            css: { disabled: amount() <= 0 || sellLocked() || (valueType === 'Mine Egg' && !App.game.breeding.hasFreeEggSlot()) },
-                                    text: valueType === 'Mine Egg' ? 'Breed' : 'Sell',
+                            css: { disabled: amount() <= 0 || sellLocked() || (valueType === UndergroundItemValueType.Fossil && !App.game.breeding.hasFreeEggSlot()) },
+                                    text: valueType === UndergroundItemValueType.Fossil ? 'Breed' : 'Sell',
                                     click: function(){Underground.sellMineItem($element.dataset.itemid, sellAmount() || 1)}">
                     </button>
-                    <!-- ko if: valueType !== 'Mine Egg' -->
+                    <!-- ko if: valueType !== UndergroundItemValueType.Fossil -->
                     <button type="button" data-bind="text: sellAmount() + '&nbsp;', css: { disabled: sellLocked() }" class="btn btn-success dropdown-toggle dropdown-toggle-split active" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     </button>
                     <div class="dropdown-menu" data-bind="foreach: [1, 10, 100, 1000, Infinity]">
-                        <button class="dropdown-item" type="button" data-bind="click: function(){sellAmount($data)}, text: $data"></button>
+                        <button class="dropdown-item" type="button" data-bind="click: function(){sellAmount($data)}, text: $data.toLocaleString('en-US')"></button>
                     </div>
                     <!-- /ko -->
                 </div>
+                <!-- /ko -->
             </td>
         </tr>
     </script>
@@ -281,13 +351,13 @@
 
 <div aria-labelledby="mineSellAllTreasuresModalLabel" class="modal fade noselect mt-5" id="mineSellAllTreasuresModal" role="dialog"
      style="cursor:default" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable modal-sm" role="document" data-bind="let: { filteredMineInvetory: player.mineInventory().filter(t => t.amount() > 0 && t.valueType != 'Mine Egg') }">
+    <div class="modal-dialog modal-dialog-scrollable modal-sm" role="document" data-bind="let: { filteredMineInventory: player.mineInventory().filter(t => t.amount() > 0 && t.valueType !== UndergroundItemValueType.Fossil && t.valueType !== UndergroundItemValueType.Shard && t.valueType !== UndergroundItemValueType.FossilPiece) }">
         <div class="modal-content">
             <div class="modal-header d-block">
                 <h4 class="mb-0">
                     Sell all selected treasures
                 </h4>
-                (<span data-bind="text: filteredMineInvetory.filter(t => !t.sellLocked()).length + ' of ' + filteredMineInvetory.length"></span>)
+                (<span data-bind="text: filteredMineInventory.filter(t => !t.sellLocked()).length + ' of ' + filteredMineInventory.length"></span>)
             </div>
             <div class="modal-body p-0">
                 <table class="table table-sm table-hover table-striped m-0">
@@ -312,12 +382,12 @@
     </div>
 
     <script type="text/html" id="cumulativeValueListTemplate">
-        <tr data-bind="let: { valueType: $data, cumulativeValue: Underground.getCumulativeValues()[$data].cumulativeValue, imgSrc: Underground.getCumulativeValues()[$data].imgSrc }">
+        <tr data-bind="let: { type: $data, cumulativeValue: Underground.getCumulativeValues()[$data].cumulativeValue, imgSrc: Underground.getCumulativeValues()[$data].imgSrc }">
             <td>
                 <img width="20px'" data-bind="attr: { src: imgSrc }">
             </td>
             <td>
-                <span data-bind="text: cumulativeValue + ' ' + UndergroundItem.getFullResourceName(valueType, cumulativeValue)"></span>
+                <span data-bind="text: cumulativeValue.toLocaleString('en-US') + ' ' + type"></span>
             </td>
         </tr>
     </script>

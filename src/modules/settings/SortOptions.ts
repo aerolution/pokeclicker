@@ -1,5 +1,3 @@
-import { BREEDING_ATTACK_BONUS } from '../GameConstants';
-
 export enum SortOptions {
     id = 0,
     name = 1,
@@ -7,11 +5,13 @@ export enum SortOptions {
     level = 3,
     shiny = 4,
     baseAttack = 5,
-    breedingEfficiency = 6,
-    eggCycles = 7,
-    timesHatched = 8,
-    category = 9,
-    proteinsUsed = 10,
+    attackBonus = 6,
+    breedingEfficiency = 7,
+    eggCycles = 8,
+    timesHatched = 9,
+    category = 10,
+    vitaminsUsed = 11,
+    evs = 12,
 }
 
 export type SortOptionConfig = {
@@ -28,48 +28,48 @@ export type SortOptionConfig = {
 
 export const SortOptionConfigs: Record<SortOptions, SortOptionConfig> = {
     [SortOptions.id]: {
-        text: 'Pokémon #',
+        text: 'Pokémon ID #',
         getValue: (p) => p.id,
     },
 
     [SortOptions.name]: {
         text: 'Name',
-        getValue: (p) => p.name,
+        getValue: (p) => p.displayName,
     },
 
     [SortOptions.attack]: {
         text: 'Attack',
-        getValue: (p) => p.calculateAttack(),
-        invert: true,
+        getValue: (p) => p.attack,
     },
 
     [SortOptions.level]: {
         text: 'Level',
         getValue: (p) => p.level,
-        invert: true,
     },
 
     [SortOptions.shiny]: {
         text: 'Shiny',
         getValue: (p) => p.shiny,
-        invert: true,
     },
 
     [SortOptions.baseAttack]: {
         text: 'Base Attack',
         getValue: (p) => p.baseAttack,
-        invert: true,
+    },
+
+    [SortOptions.attackBonus]: {
+        text: 'Attack Bonus',
+        getValue: (p) => p.getBreedingAttackBonus(),
     },
 
     [SortOptions.breedingEfficiency]: {
         text: 'Breeding Efficiency',
-        getValue: (p) => ((p.baseAttack * (BREEDING_ATTACK_BONUS / 100) + p.proteinsUsed()) / pokemonMap[p.name].eggCycles),
-        invert: true,
+        getValue: (p) => p.breedingEfficiency(),
     },
 
     [SortOptions.eggCycles]: {
         text: 'Egg Steps',
-        getValue: (p) => pokemonMap[p.name].eggCycles,
+        getValue: (p) => p.getEggSteps(),
     },
 
     [SortOptions.timesHatched]: {
@@ -83,8 +83,13 @@ export const SortOptionConfigs: Record<SortOptions, SortOptionConfig> = {
         invert: true,
     },
 
-    [SortOptions.proteinsUsed]: {
-        text: 'Proteins Used',
-        getValue: (p) => p.proteinsUsed() || 0,
+    [SortOptions.vitaminsUsed]: {
+        text: 'Vitamins Used',
+        getValue: (p) => p.totalVitaminsUsed() || 0,
+    },
+
+    [SortOptions.evs]: {
+        text: 'EVs',
+        getValue: (p) => p.evs() || 0,
     },
 };

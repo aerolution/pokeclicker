@@ -105,6 +105,15 @@ export default class GameHelper {
         return array;
     }
 
+    // Filter out any falsy values from the end of an array
+    public static filterArrayEnd(arr) {
+        let check = false;
+        return [...arr].reverse().filter((v) => {
+            check = check || !!v;
+            return check;
+        }).reverse();
+    }
+
     public static anOrA(name: string): string {
         return ['a', 'e', 'i', 'o', 'u'].includes(name[0].toLowerCase()) ? 'an' : 'a';
     }
@@ -141,6 +150,20 @@ export default class GameHelper {
         return res;
     }
 
+    public static saveFileName(nameFormat : string, changes : Record<string, string>, isBackup = false) {
+        return `${Object.entries(changes).reduce((filename, [format, value]) => filename.replace(format, value), nameFormat)}${isBackup ? ' Backup' : ''}.txt`;
+    }
+
+    public static escapeStringRegex(s: string): string {
+        return s.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
+    }
+
+    public static twoDigitNumber(n: number): string {
+        // For use in clocks / showing time
+        // Turns 4 into 04, does nothing to 23, turns 173 into 73
+        return (`0${n}`).slice(-2);
+    }
+
     private static getTomorrow() {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -151,9 +174,54 @@ export default class GameHelper {
         return tomorrow;
     }
 
-    private static twoDigitNumber(n: number): string {
-        // For use in clocks / showing time
-        // Turns 4 into 04, does nothing to 23, turns 173 into 73
-        return (`0${n}`).slice(-2);
+    // Check if HTML container with the given ID is overflowing horizontally
+    public static isOverflownX(htmlID) {
+        const element = document.querySelector(htmlID);
+        return element.scrollWidth > element.clientWidth;
+    }
+
+    // Get scroll bar size (in pixels)
+    public static getScrollBarSize() {
+        var $outer = $('<div>').css({ visibility: 'hidden', width: 100, overflow: 'scroll' }).appendTo('body'),
+            widthWithScroll = $('<div>').css({ width: '100%' }).appendTo($outer).outerWidth();
+        $outer.remove();
+        return 100 - widthWithScroll;
+    }
+
+    /**
+     * Insecure hash, but should keep some of the nosy people out.
+     * @param text
+     */
+    public static hash(text: string): number {
+        let hash = 0;
+        let i = 0;
+        let chr = 0;
+        if (text.length === 0) {
+            return hash;
+        }
+
+        for (i = 0; i < text.length; i++) {
+            chr = text.charCodeAt(i);
+            // eslint-disable-next-line no-bitwise
+            hash = ((hash << 5) - hash) + chr;
+            // eslint-disable-next-line no-bitwise
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
+    public static isColorLight(color: string): boolean {
+        const r = parseInt(color.substring(1, 3), 16), g = parseInt(color.substring(3, 5), 16), b = parseInt(color.substring(5), 16);
+        const grey = r * 0.299 + g * 0.587 + b * 0.114; // Range between 0 and 255, based on NTSC formula.
+        return grey > 127;
+    }
+
+    public static isDevelopmentBuild(): boolean {
+        // This was done like this so es/tslint doesn't throw errors
+        try {
+            return !!JSON.parse('$DEVELOPMENT');
+        } catch (e) {
+            return false;
+        }
     }
 }
